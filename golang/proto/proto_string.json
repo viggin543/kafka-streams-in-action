@@ -1,0 +1,1 @@
+"syntax = \"proto3\";\n\npackage bbejeck.chapter_3.proto;\n\noption go_package = \"example.com/kafka-avro-go/pb;pb\";\n\nmessage AvengerProto {\n  string name = 1;        // The super hero name\n  string real_name = 2;   // Real life name\n  repeated string movies = 3; // Movies the super hero is featured in\n}"

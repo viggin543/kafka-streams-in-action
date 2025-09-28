@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package bbejeck.chapter_3.proto;
+
+option go_package = "example.com/kafka-go;pb";
+
+message AvengerProto {
+  string name = 1;        // The super hero name
+  string real_name = 2;   // Real life name
+  repeated string movies = 3; // Movies the super hero is featured in
+}
