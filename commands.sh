@@ -1,3 +1,6 @@
+#
+docker-compose exec broker bash
+
 # single partition
 kafka-topics --create --topic first-topic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 kafka-topics --delete --topic first-topic --bootstrap-server localhost:9092

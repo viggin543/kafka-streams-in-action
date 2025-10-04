@@ -1,8 +1,9 @@
 package main
 
 import (
-	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 	"fmt"
+
+	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
@@ -10,6 +11,7 @@ import (
 	pbserde "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/protobuf"
 )
 
+// high level serialization
 func main() {
 	const (
 		bootstrap = "localhost:9092"

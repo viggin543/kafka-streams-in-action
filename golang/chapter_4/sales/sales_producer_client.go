@@ -10,11 +10,11 @@ import (
 )
 
 type SalesProducerClient struct {
-	producer       sarama.SyncProducer
-	topicName      string
+	producer        sarama.SyncProducer
+	topicName       string
 	salesDataSource *SalesDataSource
-	keepProducing  bool
-	mu             sync.Mutex
+	keepProducing   bool
+	mu              sync.Mutex
 }
 
 func NewSalesProducerClient(brokers []string, topicName string, salesDataSource *SalesDataSource) (*SalesProducerClient, error) {
@@ -54,13 +54,11 @@ func (s *SalesProducerClient) RunProducer() {
 
 		for _, purchase := range purchases {
 			value, _ := json.Marshal(purchase)
-			msg := &sarama.ProducerMessage{
+			partition, offset, err := s.producer.SendMessage(&sarama.ProducerMessage{
 				Topic: s.topicName,
 				Key:   sarama.StringEncoder(purchase.CustomerName),
 				Value: sarama.ByteEncoder(value),
-			}
-
-			partition, offset, err := s.producer.SendMessage(msg)
+			})
 			if err != nil {
 				log.Printf("Error producing records: %v", err)
 			} else {

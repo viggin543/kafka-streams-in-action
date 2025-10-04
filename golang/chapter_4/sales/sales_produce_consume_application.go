@@ -13,18 +13,16 @@ const TopicName = "first-produce-consume-example"
 func RunApplication() {
 	log.Println("Starting the produce consume example")
 
-	salesDataSource := NewSalesDataSourceDefault()
-
-	salesProducerClient, err := NewSalesProducerClient(
+	producer, err := NewSalesProducerClient(
 		[]string{"localhost:9092"},
 		TopicName,
-		salesDataSource,
+		NewSalesDataSource(),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create producer: %v", err)
 	}
 
-	salesConsumerClient, err := NewSalesConsumerClient(
+	consumer, err := NewSalesConsumerClient(
 		[]string{"localhost:9092"},
 		"product-transaction-group",
 		TopicName,
@@ -40,14 +38,14 @@ func RunApplication() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		salesProducerClient.RunProducer()
+		producer.RunProducer()
 	}()
 	log.Println("Started producer thread")
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		salesConsumerClient.RunConsumer()
+		consumer.RunConsumer()
 	}()
 	log.Println("Started consumer thread")
 
@@ -56,8 +54,8 @@ func RunApplication() {
 
 	<-sigterm
 	log.Println("Starting shutdown")
-	salesProducerClient.Close()
-	salesConsumerClient.Close()
+	producer.Close()
+	consumer.Close()
 
 	wg.Wait()
 	log.Println("All done now")

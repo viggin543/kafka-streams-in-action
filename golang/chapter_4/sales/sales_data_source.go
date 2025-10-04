@@ -11,11 +11,7 @@ type SalesDataSource struct {
 	numberRecords int
 }
 
-func NewSalesDataSource(numberRecords int) *SalesDataSource {
-	return &SalesDataSource{numberRecords: numberRecords}
-}
-
-func NewSalesDataSourceDefault() *SalesDataSource {
+func NewSalesDataSource() *SalesDataSource {
 	return &SalesDataSource{numberRecords: 10}
 }
 

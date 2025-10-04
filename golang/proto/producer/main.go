@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"encoding/binary"
-	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"time"
+
+	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/riferrei/srclient"
@@ -23,6 +24,7 @@ const (
 	subject           = "grpc-avengers-value"
 )
 
+// low level serialization
 func main() {
 
 	sr := srclient.NewSchemaRegistryClient(schemaRegistryURL)
@@ -30,15 +32,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("schema lookup failed: %v", err)
 	}
-	schemaId := schema.ID()
-	log.Printf("Using schema id: %d", schemaId)
+	log.Printf("Using schema id: %d", schema.ID())
 
 	msgPB := &pb.AvengerProto{
 		Name:     "Captain America",
 		RealName: "Steve Rogers",
 		Movies:   []string{"The First Avenger", "The Winter Soldier", "Civil War"},
 	}
-	value := marshalEvent(err, msgPB, schemaId)
+	value := marshalEvent(err, msgPB, schema.ID())
 
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": bootstrapServers,
