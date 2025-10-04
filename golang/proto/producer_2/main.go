@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
-
+	"example.com/kafka-avro-go/util"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
@@ -19,36 +19,26 @@ func main() {
 		topic     = "grpc-avengers"
 	)
 
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": bootstrap})
-	if err != nil {
-		panic(err)
-	}
+	producer, _ := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": bootstrap})
 	defer producer.Close()
-	sr, err := schemaregistry.NewClient(schemaregistry.NewConfig(registry))
-	if err != nil {
-		panic(err)
-	}
-	ser, err := pbserde.NewSerializer(sr, serde.ValueSerde, pbserde.NewSerializerConfig())
-	if err != nil {
-		panic(err)
-	}
+	sr, _ := schemaregistry.NewClient(schemaregistry.NewConfig(registry))
+	ser, _ := pbserde.NewSerializer(sr, serde.ValueSerde, pbserde.NewSerializerConfig())
 	msg := &pb.AvengerProto{
 		Name:     "Hulk",
 		RealName: "Bruce Banner",
 		Movies:   []string{"The Avengers", "Age of Ultron"},
 	}
-	val, err := ser.Serialize(topic, msg)
-	if err != nil {
-		panic(err)
-	}
-	err = producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &[]string{topic}[0], Partition: kafka.PartitionAny},
+	val, _ := ser.Serialize(topic, msg)
+	err := producer.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: asPtr(topic), Partition: kafka.PartitionAny},
 		Value:          val,
 		Key:            []byte("hulk"),
 	}, nil)
-	if err != nil {
-		panic(err)
-	}
+	util.PanicOnErr(err)
 	producer.Flush(5000)
 	fmt.Println("✅ Produced Hulk")
+}
+
+func asPtr(topic string) *string {
+	return &[]string{topic}[0]
 }

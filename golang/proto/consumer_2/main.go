@@ -1,14 +1,15 @@
 package main
 
 import (
-	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 	"fmt"
+	"os"
+	"os/signal"
+
+	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
 	pbserde "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/protobuf"
-	"os"
-	"os/signal"
 )
 
 const topic = "grpc-avengers"
@@ -25,10 +26,8 @@ func main() {
 	must(err)
 	defer c.Close()
 	must(c.SubscribeTopics([]string{topic}, nil))
-	srClient, err := schemaregistry.NewClient(schemaregistry.NewConfig("http://localhost:8081"))
-	must(err)
-	des, err := pbserde.NewDeserializer(srClient, serde.ValueSerde, pbserde.NewDeserializerConfig())
-	must(err)
+	srClient, _ := schemaregistry.NewClient(schemaregistry.NewConfig("http://localhost:8081"))
+	des, _ := pbserde.NewDeserializer(srClient, serde.ValueSerde, pbserde.NewDeserializerConfig())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

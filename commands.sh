@@ -16,6 +16,9 @@ kafka-console-consumer --topic second-topic --bootstrap-server broker:9092  --pr
 # without specifying a partition all records are consumed
 kafka-console-consumer --topic second-topic --bootstrap-server broker:9092  --property print.key=true  --property key.separator="-"  --from-beginning
 
+kafka-topics --list --bootstrap-server localhost:9092
+
+
 # create avro schema
 jq '. | {schema: tojson}' avenger.avcs | curl -s -X \
    POST http://localhost:8081/subjects/avro-avengers-value/versions\
@@ -34,5 +37,4 @@ jq '. | {schema: tojson}' avenger.avcs | curl -s -X \
 curl -s "http://localhost:8081/subjects/avro-avengers-value/versions" | jq
 curl -s "http://localhost:8081/subjects/avro-avengers-value/versions/1" | jq '.'
 curl -s "http://localhost:8081/subjects/avro-avengers-value/versions/latest" | jq '.'
-
 
