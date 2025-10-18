@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/binary"
-	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 	"fmt"
 	"log"
+
+	pb "example.com/kafka-avro-go/proto/example.com/kafka-go"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"google.golang.org/protobuf/proto"
@@ -20,7 +21,7 @@ const (
 // less dependencies
 
 func main() {
-	c, err := kafka.NewConsumer(&kafka.ConfigMap{
+	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": bootstrapServers,
 		"group.id":          groupID,
 		"auto.offset.reset": "earliest",
@@ -28,16 +29,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer c.Close()
+	defer consumer.Close()
 
-	if err := c.SubscribeTopics([]string{topic}, nil); err != nil {
+	if err := consumer.SubscribeTopics([]string{topic}, nil); err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("🚀 consuming from %s ...", topic)
 
 	for {
-		msg, err := c.ReadMessage(-1)
+		msg, err := consumer.ReadMessage(-1)
 		if err != nil {
 			log.Printf("read error: %v", err)
 			continue

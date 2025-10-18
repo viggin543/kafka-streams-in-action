@@ -11,16 +11,16 @@ import (
 	"github.com/IBM/sarama"
 )
 
-type SalesConsumerClient struct {
+type ConsumerClient struct {
 	consumer      sarama.ConsumerGroup
 	topicNames    []string
 	keepConsuming bool
 	mu            sync.Mutex
 }
 
-func NewSalesConsumerClient(brokers []string, groupID string, topicNames string) (*SalesConsumerClient, error) {
+func NewSalesConsumerClient(brokers []string, groupID string, topicNames string) (*ConsumerClient, error) {
 	config := sarama.NewConfig()
-	config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRoundRobin()
+	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategyRoundRobin()}
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	config.Consumer.Offsets.AutoCommit.Enable = true
 	config.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
@@ -31,19 +31,17 @@ func NewSalesConsumerClient(brokers []string, groupID string, topicNames string)
 	}
 
 	topics := strings.Split(topicNames, ",")
-	return &SalesConsumerClient{
+	return &ConsumerClient{
 		consumer:      consumer,
 		topicNames:    topics,
 		keepConsuming: true,
 	}, nil
 }
 
-func (s *SalesConsumerClient) RunConsumer() {
+func (s *ConsumerClient) RunConsumer() {
 	log.Printf("Starting runConsumer method")
 
-	handler := &salesConsumerGroupHandler{
-		client: s,
-	}
+	handler := &salesConsumerGroupHandler{client: s}
 
 	for {
 		s.mu.Lock()
@@ -64,7 +62,7 @@ func (s *SalesConsumerClient) RunConsumer() {
 	s.consumer.Close()
 }
 
-func (s *SalesConsumerClient) Close() {
+func (s *ConsumerClient) Close() {
 	log.Println("Received signal to close")
 	s.mu.Lock()
 	s.keepConsuming = false
@@ -72,7 +70,7 @@ func (s *SalesConsumerClient) Close() {
 }
 
 type salesConsumerGroupHandler struct {
-	client *SalesConsumerClient
+	client *ConsumerClient
 }
 
 func (h *salesConsumerGroupHandler) Setup(sarama.ConsumerGroupSession) error {

@@ -18,14 +18,14 @@ const topic = "grpc-avengers"
 // using confluent dependencies
 
 func main() {
-	c, err := kafka.NewConsumer(&kafka.ConfigMap{
+	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092",
 		"group.id":          "g1",
 		"auto.offset.reset": "earliest",
 	})
 	must(err)
-	defer c.Close()
-	must(c.SubscribeTopics([]string{topic}, nil))
+	defer consumer.Close()
+	must(consumer.SubscribeTopics([]string{topic}, nil))
 	srClient, _ := schemaregistry.NewClient(schemaregistry.NewConfig("http://localhost:8081"))
 	des, _ := pbserde.NewDeserializer(srClient, serde.ValueSerde, pbserde.NewDeserializerConfig())
 
@@ -38,7 +38,7 @@ func main() {
 			fmt.Println("bye")
 			return
 		default:
-			ev := c.Poll(100)
+			ev := consumer.Poll(100)
 			if ev == nil {
 				continue
 			}
