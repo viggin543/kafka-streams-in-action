@@ -1,6 +1,7 @@
 package pipelining
 
 import (
+	"context"
 	"log"
 	"strings"
 	"sync"
@@ -14,7 +15,7 @@ type RecordProcessor interface {
 	GetOffsets() map[string]map[int32]int64
 }
 
-type PipeliningConsumerClient struct {
+type ConsumerClient struct {
 	consumer        sarama.ConsumerGroup
 	recordProcessor RecordProcessor
 	topicNames      []string
@@ -22,9 +23,9 @@ type PipeliningConsumerClient struct {
 	mu              sync.Mutex
 }
 
-func NewPipeliningConsumerClient(brokers []string, groupID string, topicNames string, recordProcessor RecordProcessor) (*PipeliningConsumerClient, error) {
+func NewPipeliningConsumerClient(brokers []string, groupID string, topicNames string, recordProcessor RecordProcessor) (*ConsumerClient, error) {
 	config := sarama.NewConfig()
-	config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRoundRobin()
+	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategyRoundRobin()}
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	config.Consumer.MaxProcessingTime = 5 * time.Second
 
@@ -34,7 +35,7 @@ func NewPipeliningConsumerClient(brokers []string, groupID string, topicNames st
 	}
 
 	topics := strings.Split(topicNames, ",")
-	return &PipeliningConsumerClient{
+	return &ConsumerClient{
 		consumer:        consumer,
 		recordProcessor: recordProcessor,
 		topicNames:      topics,
@@ -42,12 +43,10 @@ func NewPipeliningConsumerClient(brokers []string, groupID string, topicNames st
 	}, nil
 }
 
-func (p *PipeliningConsumerClient) RunConsumer() {
+func (p *ConsumerClient) RunConsumer() {
 	log.Printf("Starting runConsumer method")
 
-	handler := &consumerGroupHandler{
-		client: p,
-	}
+	handler := &consumerGroupHandler{client: p}
 
 	for {
 		p.mu.Lock()
@@ -58,7 +57,7 @@ func (p *PipeliningConsumerClient) RunConsumer() {
 			break
 		}
 
-		err := p.consumer.Consume(nil, p.topicNames, handler)
+		err := p.consumer.Consume(context.Background(), p.topicNames, handler)
 		if err != nil {
 			log.Printf("Error from consumer: %v", err)
 		}
@@ -68,7 +67,7 @@ func (p *PipeliningConsumerClient) RunConsumer() {
 	p.consumer.Close()
 }
 
-func (p *PipeliningConsumerClient) Close() {
+func (p *ConsumerClient) Close() {
 	log.Println("Received signal to close")
 	p.mu.Lock()
 	p.keepConsuming = false
@@ -76,7 +75,7 @@ func (p *PipeliningConsumerClient) Close() {
 }
 
 type consumerGroupHandler struct {
-	client *PipeliningConsumerClient
+	client *ConsumerClient
 }
 
 func (h *consumerGroupHandler) Setup(sarama.ConsumerGroupSession) error {

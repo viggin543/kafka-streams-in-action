@@ -8,14 +8,14 @@ import (
 	"github.com/IBM/sarama"
 )
 
-type PipeliningProducerClient struct {
+type ProducerClient struct {
 	producer      sarama.SyncProducer
 	topicName     string
 	keepProducing bool
 	mu            sync.Mutex
 }
 
-func NewPipeliningProducerClient(brokers []string, topicName string) (*PipeliningProducerClient, error) {
+func NewPipeliningProducerClient(brokers []string, topicName string) (*ProducerClient, error) {
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForLocal
 	config.Producer.Retry.Max = 10
@@ -26,14 +26,14 @@ func NewPipeliningProducerClient(brokers []string, topicName string) (*Pipelinin
 		return nil, err
 	}
 
-	return &PipeliningProducerClient{
+	return &ProducerClient{
 		producer:      producer,
 		topicName:     topicName,
 		keepProducing: true,
 	}, nil
 }
 
-func (p *PipeliningProducerClient) RunProducer() {
+func (p *ProducerClient) RunProducer() {
 	log.Printf("Created producer instance")
 
 	for {
@@ -68,7 +68,7 @@ func (p *PipeliningProducerClient) RunProducer() {
 	p.producer.Close()
 }
 
-func (p *PipeliningProducerClient) Close() {
+func (p *ProducerClient) Close() {
 	log.Println("Received signal to close")
 	p.mu.Lock()
 	p.keepProducing = false
