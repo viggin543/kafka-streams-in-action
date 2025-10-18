@@ -1,6 +1,7 @@
 package proto
 
 import (
+	"context"
 	"log"
 	"strings"
 	"sync"
@@ -60,7 +61,7 @@ func (m *MultiEventProtoConsumerClient) RunConsumer() {
 		}
 
 		log.Printf("Subscribing to %v", m.topicNames)
-		err := m.consumer.Consume(nil, m.topicNames, handler)
+		err := m.consumer.Consume(context.Background(), m.topicNames, handler)
 		if err != nil {
 			log.Printf("Error from consumer: %v", err)
 		}
